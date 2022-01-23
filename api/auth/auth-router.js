@@ -4,7 +4,26 @@ const bcrypt = require('bcryptjs');
 const jwt = require("jsonwebtoken");
 const database = require ('../../data/dbConfig')
 
-router.post('/register', (req, res) => {
+async function checkUsernameFree(res, req, next) {
+  try {
+    const users = await database('users').where({username: req.body.username})
+    if (!users.length) {next()}
+    else res.status(422).json("Username taken ") 
+  } catch (err){
+  next(err)
+ }
+}
+
+function passwordUsernameRequired (req, res, next) {
+  if (!req.body.password || !req.body.username) {
+    res.json({
+      message: "username and password required"
+    }) 
+  } else {
+    next()
+  }
+}
+router.post('/register', passwordUsernameRequired, (req, res) => {
   const user = req.body
   const hash = bcrypt.hashSync(user.password, BCRYPT_ROUNDS)
   user.password = hash
@@ -17,7 +36,7 @@ router.post('/register', (req, res) => {
 });
 
 
-router.post('/login', (req, res, next) => {
+router.post('/login', passwordUsernameRequired, (req, res, next) => {
   let { username, password } = req.body
   database('users')
     .where({ username: username })
