@@ -17,7 +17,8 @@ async function checkUsernameFree(res, req, next) {
 function passwordUsernameRequired (req, res, next) {
   if (!req.body.password || !req.body.username) {
     res.json({
-      message: "username and password required"
+      message: "username and password required",
+      status: 400
     }) 
   } else {
     next()
